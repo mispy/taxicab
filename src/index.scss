@@ -4,9 +4,16 @@ html, body {
 	background-color: black;
 }
 
+#root {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+}
+
 .StringView {
-	width: 200px;
-	height: 300px;
+	width: 70vw;
+	height: 70vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -18,6 +25,11 @@ html, body {
 	}
 }
 
+textarea {
+	margin-top: 1em !important;
+	margin-bottom: 0.5em !important;
+}
+
 .startRegion {
 	color: white;
 }
@@ -27,6 +39,10 @@ html, body {
 }
 
 .riskRegion {
+	background-color: blue;
+}
+
+.pathRegion {
 	background-color: blue;
 }
 

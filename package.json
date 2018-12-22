@@ -23,6 +23,7 @@
     "react-dom": "^16.6.3",
     "sass-loader": "^7.0.3",
     "style-loader": "^0.13.2",
+    "tinyqueue": "^2.0.0",
     "ts-loader": "^4.4.1",
     "typescript": "^3.2.2",
     "url-loader": "^0.5.8",

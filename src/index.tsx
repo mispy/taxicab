@@ -28,6 +28,19 @@ interface Region {
     ch: string
 }
 
+
+
+function riskLevel(region: Region): number {
+    if (region.ch === '.')
+        return 0
+    else if (region.ch === '=')
+        return 1
+    else if (region.ch === '|')
+        return 2  
+    else
+        throw new Error()
+}
+
 class Cave {
     depth: number
     targetPos: Point
@@ -110,22 +123,6 @@ class Cave {
             return NARROW
     }
 
-    riskLevel(): number {
-        let sum = 0
-        for (let y of _.range(this.height)) {
-            for (let x of _.range(this.width)) {
-                const ch = this.regions[y][x].ch
-                if (ch === '.')
-                    sum += 0
-                else if (ch === '=')
-                    sum += 1
-                else if (ch === '|')
-                    sum += 2  
-            }
-        }
-        return sum
-    }
-
     getChar(reg: Region) {
         if (reg == this.startRegion)
             return "M"
@@ -147,9 +144,9 @@ class Cave {
 }
 
 @observer
-class StringView extends React.Component<{ string: string }> {
+class AutoScaler extends React.Component<{ children: any }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
-    stringDiv: React.RefObject<HTMLDivElement> = React.createRef()
+    innerDiv: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable gridString: string = ""
 
@@ -160,7 +157,7 @@ class StringView extends React.Component<{ string: string }> {
 
     @action.bound onResize() {
         const targetRect = this.base.current!.getBoundingClientRect()
-        const currentRect = this.stringDiv.current!.getBoundingClientRect()
+        const currentRect = this.innerDiv.current!.getBoundingClientRect()
         this.xScale = targetRect.width/(currentRect.width/this.xScale)
         this.yScale = targetRect.height/(currentRect.height/this.yScale)
     }
@@ -176,8 +173,38 @@ class StringView extends React.Component<{ string: string }> {
 
     render() {
         return <div ref={this.base} className="StringView">
-            <div ref={this.stringDiv} style={{ transform: this.transform }} dangerouslySetInnerHTML={{__html: this.props.string.replace(/\n/g, "<br/>")}}/>
+            <code ref={this.innerDiv} style={{ transform: this.transform }}>
+                {this.props.children}
+            </code>
         </div>
+    }
+}
+
+@observer
+class FindRiskView extends React.Component<{ cave: Cave, index: number }> {
+    render() {
+        const {cave, index} = this.props
+
+        let i = 0
+        return <AutoScaler>
+            {_.range(cave.height).map(y => 
+                _.range(cave.width).map(x => {
+                    i += 1
+
+                    const reg = cave.regions[y][x]
+
+                    if (i-1 <= index)
+                        return <span className="riskRegion">{reg.ch}</span>
+
+                    if (reg === cave.startRegion)
+                        return <span className="startRegion">{reg.ch}</span>
+                    else if (reg === cave.targetRegion)
+                        return <span className="targetRegion">{reg.ch}</span>
+                    else
+                        return reg.ch
+                }).concat([<br/>])
+            )}
+        </AutoScaler>
     }
 }
 
@@ -186,12 +213,35 @@ class Main extends React.Component {
     @observable puzzleInput = `depth: 510\ntarget: 10,10\n`
     @observable cave: Cave = Cave.fromPuzzle(this.puzzleInput)
 
+    @observable findRiskIndex: number = -1
+    @observable risk: number = 0
+
     @action.bound onPuzzleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
         this.puzzleInput = e.currentTarget.value
     }
 
     @action.bound readPuzzle(input: string) {
         this.cave = Cave.fromPuzzle(input)
+    }
+
+    @action.bound onFindRisk() {
+        this.findRiskIndex = 0
+        this.findRiskFrame()
+    }
+
+    @action.bound findRiskFrame() {
+        this.findRiskIndex += 1
+
+        const y = Math.floor(this.findRiskIndex / this.cave.height)
+        const x = this.findRiskIndex % this.cave.height
+
+        this.risk += riskLevel(this.cave.regions[y][x])
+
+        if (this.findRiskIndex >= this.cave.width*this.cave.height)
+            this.findRiskIndex = -1
+        else {
+            requestAnimationFrame(this.findRiskFrame)
+        }
     }
 
     dispose!: IReactionDisposer
@@ -207,8 +257,9 @@ class Main extends React.Component {
         console.log(this.cave.toString())
         return <main>
             <textarea value={this.puzzleInput} onChange={this.onPuzzleInput}/>
-            <StringView string={this.cave.toString()}/>
-            <button className="btn btn-success">Find risk level</button>
+            <FindRiskView cave={this.cave} index={this.findRiskIndex}/>
+            {this.findRiskIndex >= 0 && <div>{this.risk}</div>}
+            <button className="btn btn-success" onClick={this.onFindRisk}>Find risk level</button>
         </main>
     }
 }

@@ -5,7 +5,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
-const BASE_PATH = process.env.BASE_PATH||""
+const BASE_PATH = process.env.BASE_PATH
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
@@ -14,7 +14,7 @@ module.exports = (env, argv) => {
         mode: argv.mode||'development',
         entry: path.join(__dirname, 'src/index.ts'),
         output: {
-            path: path.join(__dirname, "build"),
+            path: path.join(__dirname, "build", BASE_PATH||""),
             filename: "assets/[name].js",
             libraryTarget: 'umd'
         },

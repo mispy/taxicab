@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import * as _ from 'lodash'
 import './index.scss'
+import * as d3 from 'd3-scale'
+import * as d3_chromatic from 'd3-scale-chromatic'
 const log = console.log
 
 class NanobotRenderer3D {
@@ -16,6 +18,8 @@ class NanobotRenderer3D {
     mouseY: number = 0
     showRadius: boolean = true
     input: string = ""
+    colorScale: d3.ScaleQuantize<string> = d3.scaleQuantize().domain([0, 1]).range(d3_chromatic.schemeSpectral[10] as any) as any
+    opacityScale = d3.scalePow().domain([0, 1]).range([1, 0.05])
 
     // The maximum distance away from the origin that bounds the input data
     maxDist: number = 100
@@ -52,8 +56,10 @@ class NanobotRenderer3D {
     }
 
     setNumSpheres(n: number) {
+        let lineGeometry = this.sphereGeometry
+        // lineGeometry = new THREE.WireframeGeometry(this.sphereGeometry)
         while (this.spheres.length < n) {
-            this.spheres.push(new THREE.Mesh(this.sphereGeometry, this.sphereMaterial))
+            this.spheres.push(new THREE.Mesh(lineGeometry, this.sphereMaterial))
         }
 
         while (this.spheres.length > n) {
@@ -97,10 +103,20 @@ class NanobotRenderer3D {
         }
         this.maxDist = _.max(coords.map(x => Math.abs(x))) as number
 
-        this.sphereMaterial.opacity = this.showRadius ? 0.1 : 1
+        // this.sphereMaterial.opacity = this.showRadius ? 0.1 : 1
 
+        this.sphereMaterial.color.r = 0
+
+        const maxBotRadius = _.max(bots.map(b => b[3])) as number
         for (let i = 0; i < bots.length; i++) {
             const sphere = this.spheres[i], bot = bots[i]
+            const relativeRadius = bot[3] / maxBotRadius
+
+            const material = new THREE.MeshBasicMaterial({ color: 0xf5aa44, wireframe: true, transparent: true, opacity: 0.5, depthWrite: false })
+            // const material = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, linewidth: 1 } );
+            material.color.setStyle(this.colorScale(relativeRadius))
+            material.opacity = this.showRadius ? this.opacityScale(relativeRadius) : 1
+            sphere.material = material
 
             sphere.position.x = (bot[0]/this.maxDist)*this.worldSize
             sphere.position.y = (bot[1]/this.maxDist)*this.worldSize

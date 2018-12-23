@@ -30,6 +30,7 @@
     "sass-loader": "^7.0.3",
     "style-loader": "^0.13.2",
     "three": "^0.99.0",
+    "three-orbit-controls": "^82.1.0",
     "tinyqueue": "^2.0.0",
     "ts-loader": "^4.4.1",
     "typescript": "^3.2.2",

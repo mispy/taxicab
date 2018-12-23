@@ -13,8 +13,36 @@ q {
 
 textarea {
 	width: 100%;
+	min-height: 300px;
 	height: 20vh;
 }
+
+.credits {
+	opacity: 0.8;
+	font-size: 0.9em;
+}
+
+#viz {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	touch-action: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	cursor: pointer;
+}
+
+h1 {
+	font-size: 2em;
+	margin-bottom: 0.8em;
+}
+
 @media (min-width: 801px) {
 	#root {
 		display: flex;
@@ -25,16 +53,27 @@ textarea {
 		max-width: 500px;
 		padding: 2rem;
 		flex-grow: 1;
+		opacity: 0.9;
 	}
 	#viz {
 		width: 100%;
 		height: 100vh;
+		overflow: hidden;
 	}
 }
 
 @media (max-width: 800px) {
+	html {
+		font-size: 14px;
+	}
+
 	#viz {
 		width: 100vw;
-		height: 100vh;
+		height: 75vh;
+	}
+
+	#ui {
+		border-top: 1px solid #ccc;
+		padding: 2rem;
 	}
 }

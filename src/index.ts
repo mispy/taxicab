@@ -1,4 +1,6 @@
 import * as THREE from 'three'
+declare var require: any;
+const OrbitControls = require('three-orbit-controls')(THREE)
 import * as _ from 'lodash'
 import './index.scss'
 import * as d3 from 'd3-scale'
@@ -7,19 +9,22 @@ const log = console.log
 
 class NanobotRenderer3D {
     scene = new THREE.Scene()
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000000)
+    camera = new THREE.PerspectiveCamera(90, 1, 0.1, 1000000)
     renderer = new THREE.WebGLRenderer()
     spheres: THREE.Mesh[] = []
     sphereGeometry = new THREE.OctahedronGeometry(1)
-    sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xf5aa44, transparent: true, opacity: 0.5, depthWrite: false })
-    originMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, depthWrite: false })
-    originPoint = new THREE.Mesh(this.sphereGeometry, this.originMat)
+    sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xf5aa44 })
+    originMat = new THREE.MeshBasicMaterial({ color: 0x00ff00  })
+    originPoint = new THREE.Mesh(new THREE.CubeGeometry(0.5, 0.5, 0.5), this.originMat)
     mouseX: number = 0
     mouseY: number = 0
     showRadius: boolean = true
     input: string = ""
     colorScale: d3.ScaleQuantize<string> = d3.scaleQuantize().domain([0, 1]).range(d3_chromatic.schemeSpectral[10] as any) as any
     opacityScale = d3.scalePow().domain([0, 1]).range([1, 0.05])
+    controls = new OrbitControls(this.camera);
+    group = new THREE.Group()
+
 
     // The maximum distance away from the origin that bounds the input data
     maxDist: number = 100
@@ -34,7 +39,8 @@ class NanobotRenderer3D {
         this.originPoint.position.y = 0
         this.originPoint.position.z = 0
         this.originPoint.scale.setLength(1)
-        this.scene.add(this.originPoint)
+        this.group.add(this.originPoint)
+        this.scene.add(this.group)
 
         this.frame()
     }
@@ -42,29 +48,20 @@ class NanobotRenderer3D {
     frame() {
         requestAnimationFrame(this.frame.bind(this))
         
-    // const light = new THREE.DirectionalLight(0xffffff)
-    // light.position.set(camera.position.x, camera.position.y, camera.position.z)
-    // scene.add(light)
-
-        this.camera.position.x += (this.mouseX - this.camera.position.x) * .05;
-        this.camera.position.y += (-this.mouseY - this.camera.position.y) * .05;       
-
-        this.camera.lookAt(this.originPoint.position);
+        this.controls.update()
         this.renderer.render(this.scene, this.camera);
-
-
     }
 
     setNumSpheres(n: number) {
-        let lineGeometry = this.sphereGeometry
-        // lineGeometry = new THREE.WireframeGeometry(this.sphereGeometry)
         while (this.spheres.length < n) {
-            this.spheres.push(new THREE.Mesh(lineGeometry, this.sphereMaterial))
+            const sphere = new THREE.Mesh(this.sphereGeometry, this.sphereMaterial)
+            this.spheres.push(sphere)
+            this.group.add(sphere)
         }
 
         while (this.spheres.length > n) {
             const sphere = this.spheres.pop() as THREE.Mesh
-            this.scene.remove(sphere)
+            this.group.remove(sphere)
         }
     }
 
@@ -79,7 +76,7 @@ class NanobotRenderer3D {
 
         this.camera.position.x = 0
         this.camera.position.y = 0
-        this.camera.position.z = this.worldSize
+        this.camera.position.z = this.worldSize+10
         this.camera.lookAt(this.originPoint.position)
     }
 
@@ -112,7 +109,7 @@ class NanobotRenderer3D {
             const sphere = this.spheres[i], bot = bots[i]
             const relativeRadius = bot[3] / maxBotRadius
 
-            const material = new THREE.MeshBasicMaterial({ color: 0xf5aa44, wireframe: true, transparent: true, opacity: 0.5, depthWrite: false })
+            const material = new THREE.MeshBasicMaterial({ color: 0xf5aa44, wireframe: true, transparent: true, opacity: 0.5 })
             // const material = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, linewidth: 1 } );
             material.color.setStyle(this.colorScale(relativeRadius))
             material.opacity = this.showRadius ? this.opacityScale(relativeRadius) : 1
@@ -122,7 +119,6 @@ class NanobotRenderer3D {
             sphere.position.y = (bot[1]/this.maxDist)*this.worldSize
             sphere.position.z = (bot[2]/this.maxDist)*this.worldSize
             sphere.scale.setLength(this.showRadius ? (bot[3]/this.maxDist)*this.worldSize : 1)
-            this.scene.add(sphere)
         }
     }
 }
@@ -134,8 +130,13 @@ function main() {
     
     function onResize() {
         const rect = viz.getBoundingClientRect()
+        // const size = Math.min(rect.width, rect.height)
+        // nanoRenderer.renderer.setSize(size, size);
+        nanoRenderer.camera.aspect = rect.width/rect.height
+        nanoRenderer.camera.updateProjectionMatrix()
+
+        // Correct for differences in field of view caused by aspect ratio
         nanoRenderer.renderer.setSize(rect.width, rect.height);
-        viz.appendChild(nanoRenderer.renderer.domElement);    
     }
 
     const ui = document.querySelector("#ui") as HTMLDivElement
@@ -147,35 +148,39 @@ function main() {
     inputArea.value = INITIAL_INPUT
     inputArea.oninput = () => nanoRenderer.update(inputArea.value)
 
+    viz.appendChild(nanoRenderer.renderer.domElement);    
     onResize()
-//textarea = document.querySelector("#ui textarea")
-
     
     nanoRenderer.update(INITIAL_INPUT)
 
     window.addEventListener("resize", onResize)
 
     let isMouseDown = false
-    function onMouseMove(event: MouseEvent) {
+    function onMouseMove(e: MouseEvent|TouchEvent) {
         if (!isMouseDown) return
-        const mouseX = event.clientX - window.innerWidth/2;
-        const mouseY = event.clientY - window.innerHeight/2;
-        nanoRenderer.mouseX = mouseX
-        nanoRenderer.mouseY = mouseY
+        const rect = viz.getBoundingClientRect()
+        const offsetX = (e as MouseEvent).offsetX || (e as any).targetTouches[0].pageX - rect.left
+        const offsetY = (e as MouseEvent).offsetY || (e as any).targetTouches[0].pageY - rect.top
+        nanoRenderer.mouseX = offsetX
+        nanoRenderer.mouseY = offsetY
     }
 
-    function onMouseDown(event: MouseEvent) {
+    function onMouseDown(event: MouseEvent|TouchEvent) {
         isMouseDown = true
     }
 
-    function onMouseUp(event: MouseEvent) {
+    function onMouseUp(event: MouseEvent|TouchEvent) {
         isMouseDown = false
     }
 
-    viz.addEventListener("mousemove", onMouseMove)
-    viz.addEventListener("mousedown", onMouseDown)
-    viz.addEventListener("mouseup", onMouseUp)
-    viz.addEventListener("mouseleave", onMouseUp)
+    viz.onmousemove = onMouseMove
+    viz.onmousedown = onMouseDown
+    viz.onmouseup = onMouseUp
+    viz.onmouseleave = onMouseUp
+    viz.onmousemove = onMouseMove
+    viz.ontouchstart = onMouseDown
+    viz.ontouchend = onMouseUp
+    viz.ontouchmove = onMouseMove
 }
 
 const INITIAL_INPUT = `pos=<86508574,12573428,20533848>, r=83193725

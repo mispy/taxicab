@@ -5,6 +5,8 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
+const BASE_PATH = process.env.BASE_PATH||""
+
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production'
     return {
@@ -51,7 +53,16 @@ module.exports = (env, argv) => {
             // into a separate CSS bundle for download
             new ExtractTextPlugin('assets/[name].css'),
             new ManifestPlugin(),
-            new CopyWebpackPlugin([{ from: 'public' }])
+            new CopyWebpackPlugin([{ 
+                from: 'public',
+                transform: (content, path) => {
+                    if (BASE_PATH && path.match(/index.html$/)) {
+                        const s = content.toString('utf8')
+                        return Buffer.from(s.replace(/\.\/assets/g, BASE_PATH+'/assets'))
+                    }
+                    return content
+                }
+            }])
         ],
         devServer: {
             host: 'localhost',

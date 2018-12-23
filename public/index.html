@@ -1,38 +1,52 @@
 <!doctype html>
 <html>
-    <head>
-        <title>AoC Day 22</title>
-        <link rel="stylesheet" href="./assets/main.css"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content=""/>
-        <link href='//fonts.googleapis.com/css?family=Source+Code+Pro:300&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
-    </head>
-    <body>
-        <noscript>
-            You need to enable JavaScript to run this app.
-        </noscript>
-        <div id="root">
-            <div id="viz">
-    
-            </div>    
-            <div id="ui">
-                <h1>Taxicab Spheres</h1>
-                <p>This is a visualization of <a href="https://adventofcode.com/2018/day/23">day 23</a> of Advent of Code 2018, <q>Experimental Emergency Teleportation</q>. In this puzzle you are asked to find the closest point to the origin which is within the signal range of the most possible nanobots.</p>
-                <p>Because the distance between points is measured in <a href="https://en.wiktionary.org/wiki/Manhattan_distance">Manhattan distance</a>, the three-dimensional space in the puzzle has a <a href="https://en.wikipedia.org/wiki/Taxicab_geometry">taxicab geometry</a>. This means that the "spheres" defined by the radius around each nanobot are really <a href="https://en.wikipedia.org/wiki/Octahedron">octahedrons</a>.
-                <p></p><div class="form-check">
-                    <label class="form-check-label">
-                        <input class="showRadius form-check-input" type="checkbox" value="">
-                        Show radius
-                    </label>
-                </div></p>
+
+<head>
+    <title>Taxicab Spheres</title>
+    <link rel="stylesheet" href="./assets/main.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <link href='//fonts.googleapis.com/css?family=Source+Code+Pro:300&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+    <noscript>
+        You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root">
+        <div id="viz">
+
+        </div>
+        <div id="ui">
+            <h1>Taxicab Spheres</h1>
+            <p>This is a visualization of <a href="https://adventofcode.com/2018/day/23">day 23</a> of Advent of Code
+                2018, <q>Experimental Emergency Teleportation</q>. In this puzzle you are asked to find the closest
+                point to the origin which is within the signal range of the most possible nanobots.</p>
+            <p>Because the distance between points is measured in <a href="https://en.wiktionary.org/wiki/Manhattan_distance">Manhattan
+                    distance</a>, the three-dimensional space in the puzzle has a <a href="https://en.wikipedia.org/wiki/Taxicab_geometry">taxicab
+                    geometry</a>. This means that the "spheres" defined by the radius around each nanobot are really <a
+                    href="https://en.wikipedia.org/wiki/Octahedron">octahedrons</a>.
+                <p>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="radiusOutline" value="1">
+                        <label class="form-check-label" for="radiusOutline">Show radius outline</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="centerPoints" value="2">
+                        <label class="form-check-label" for="centerPoints">Show center points</label>
+                    </div>
+                </p>
+                <p>The nanobots are colored according to their radius. The largest ranges are shown in <span class="largerRange">dark purple</span>, while smaller ones are <span class="smallerRange">lighter</span>. The origin point is <span class="originPoint">bright green</span>.</span></p>
                 <div class="form-group">
-                    <label for="puzzleInput">If you like, you can enter <a href="https://adventofcode.com/2018/day/23/input">your puzzle input</a> below.</label>
+                    <label for="puzzleInput">If you like, you can enter <a href="https://adventofcode.com/2018/day/23/input">your
+                            puzzle input</a> below to see what it looks like.</label>
                     <textarea id="puzzleInput"></textarea>
                 </div>
-                <hr/>
+                <hr />
                 <a href="https://github.com/mispy/taxicab-spheres">https://github.com/mispy/taxicab-spheres</a>
-            </div>
         </div>
-        <script src="./assets/main.js"></script>
-    </body>
+    </div>
+    <script src="./assets/main.js"></script>
+</body>
+
 </html>

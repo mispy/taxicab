@@ -22,6 +22,21 @@ textarea {
 	font-size: 0.9em;
 }
 
+.largerRange {
+	color: #5e4fa2;
+	font-weight: bold;
+}
+
+.smallerRange {
+	color: #e7e98e;
+	font-weight: bold;
+}
+
+.originPoint {
+	color: #03d000;
+	font-weight: bold;
+}
+
 #viz {
 	display: flex;
 	align-items: center;

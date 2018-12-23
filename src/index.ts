@@ -15,14 +15,14 @@ class NanobotRenderer3D {
     sphereGeometry = new THREE.OctahedronGeometry(1)
     sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xf5aa44 })
     originMat = new THREE.MeshBasicMaterial({ color: 0x00ff00  })
-    originPoint = new THREE.Mesh(new THREE.CubeGeometry(0.5, 0.5, 0.5), this.originMat)
+    originPoint = new THREE.Mesh(this.sphereGeometry, this.originMat)
     mouseX: number = 0
     mouseY: number = 0
     showRadius: boolean = true
     input: string = ""
-    colorScale: d3.ScaleQuantize<string> = d3.scaleQuantize().domain([0, 1]).range(d3_chromatic.schemeSpectral[10] as any) as any
-    opacityScale = d3.scalePow().domain([0, 1]).range([1, 0.05])
-    controls = new OrbitControls(this.camera);
+    colorScale: d3.ScaleQuantize<string> = d3.scaleQuantize().domain([0, 1]).range(d3_chromatic.schemeSpectral[11] as any) as any
+    opacityScale = d3.scalePow().domain([0, 1]).range([1, 1])
+    controls: any
     group = new THREE.Group()
 
 
@@ -42,11 +42,12 @@ class NanobotRenderer3D {
         this.group.add(this.originPoint)
         this.scene.add(this.group)
 
-        this.frame()
+        this.frameBind = this.frame.bind(this)
     }
 
+    frameBind: () => void
     frame() {
-        requestAnimationFrame(this.frame.bind(this))
+        requestAnimationFrame(this.frameBind)
         
         this.controls.update()
         this.renderer.render(this.scene, this.camera);
@@ -109,7 +110,7 @@ class NanobotRenderer3D {
             const sphere = this.spheres[i], bot = bots[i]
             const relativeRadius = bot[3] / maxBotRadius
 
-            const material = new THREE.MeshBasicMaterial({ color: 0xf5aa44, wireframe: true, transparent: true, opacity: 0.5 })
+            const material = new THREE.MeshBasicMaterial({ color: 0xf5aa44, wireframe: this.showRadius ? true : false, transparent: true, opacity: 0.5 })
             // const material = new THREE.LineBasicMaterial( { color: 0x000000, transparent: true, linewidth: 1 } );
             material.color.setStyle(this.colorScale(relativeRadius))
             material.opacity = this.showRadius ? this.opacityScale(relativeRadius) : 1
@@ -127,7 +128,8 @@ function main() {
     const nanoRenderer = new NanobotRenderer3D()
 
     const viz = document.querySelector("#viz") as HTMLDivElement
-    
+    nanoRenderer.controls = new OrbitControls(nanoRenderer.camera, viz);
+
     function onResize() {
         const rect = viz.getBoundingClientRect()
         // const size = Math.min(rect.width, rect.height)
@@ -140,9 +142,12 @@ function main() {
     }
 
     const ui = document.querySelector("#ui") as HTMLDivElement
-    const showRadius = ui.querySelector(".showRadius") as HTMLInputElement
+
+    const showRadius = ui.querySelector("#radiusOutline") as HTMLInputElement
+    const centerPoints = ui.querySelector("#centerPoints") as HTMLInputElement
     showRadius.checked = nanoRenderer.showRadius
     showRadius.onchange = () => nanoRenderer.onToggleRadius(showRadius.checked)
+    centerPoints.onchange = () => nanoRenderer.onToggleRadius(showRadius.checked)
 
     const inputArea = ui.querySelector("textarea") as HTMLTextAreaElement
     inputArea.value = INITIAL_INPUT
@@ -181,6 +186,8 @@ function main() {
     viz.ontouchstart = onMouseDown
     viz.ontouchend = onMouseUp
     viz.ontouchmove = onMouseMove
+
+    nanoRenderer.frameBind()
 }
 
 const INITIAL_INPUT = `pos=<86508574,12573428,20533848>, r=83193725
